@@ -1,0 +1,214 @@
+<project name="HUSKY builds" basedir="." xmlns:sf="antlib:com.salesforce">
+
+    <property file="build.properties"/>
+    <property environment="env"/>
+
+    <property name="CHECK_ONLY" value="true"/>
+
+    <!--Initial target (retrieve)-->
+    <target name="retrieveFromDev">
+        <retrieve username="${prod.username}"
+                password="${prod.password}"
+                serverUrl="${prod.serverurl}"/>
+    </target>
+
+    <!--QA targets-->
+    <target name="deployQA">
+        <deploy username="${qa.username}"
+                password="${qa.password}"
+                serverUrl="${sandbox.serverurl}"
+                checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup1QA">
+        <backup_deploy username="${qa.username}"
+                       password="${qa.password}"
+                       serverUrl="${sandbox.serverurl}"
+                       checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup2QA">
+        <backup_destructive username="${qa.username}"
+                            password="${qa.password}"
+                            serverUrl="${sandbox.serverurl}"
+                            checkOnly="${CHECK_ONLY}"/>
+    </target>
+
+    <!--Validation targets-->
+    <target name="deployValPckg">
+        <deploy username="${valPck.username}"
+                password="${valPck.password}"
+                serverUrl="${sandbox.serverurl}"
+                checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup1ValPckg">
+        <backup_deploy username="${valPck.username}"
+                       password="${valPck.password}"
+                       serverUrl="${sandbox.serverurl}"
+                       checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup2ValPckg">
+        <backup_destructive username="${valPck.username}"
+                            password="${valPck.password}"
+                            serverUrl="${sandbox.serverurl}"
+                            checkOnly="${CHECK_ONLY}"/>
+    </target>
+
+    <!--PS targets-->
+    <target name="deployPS">
+        <deploy username="${ps.username}"
+                password="${ps.password}"
+                serverUrl="${sandbox.serverurl}"
+                checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup1PS">
+        <backup_deploy username="${ps.username}"
+                       password="${ps.password}"
+                       serverUrl="${sandbox.serverurl}"
+                       checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup2PS">
+        <backup_destructive username="${ps.username}"
+                            password="${ps.password}"
+                            serverUrl="${sandbox.serverurl}"
+                            checkOnly="${CHECK_ONLY}"/>
+    </target>
+
+    <!--PRODUCTION targets-->
+    <target name="deployPROD">
+        <deploy username="${prod.username}"
+                password="${prod.password}"
+                serverUrl="${prod.serverurl}"
+                checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup1PROD">
+        <backup_deploy username="${prod.username}"
+                       password="${prod.password}"
+                       serverUrl="${prod.serverurl}"
+                       checkOnly="${CHECK_ONLY}"/>
+    </target>
+    <target name="deployBackup2PROD">
+        <backup_destructive username="${prod.username}"
+                            password="${prod.password}"
+                            serverUrl="${prod.serverurl}"
+                            checkOnly="${CHECK_ONLY}"/>
+    </target>
+
+    <!-- Macros -->
+    <macrodef name="deploy">
+        <attribute name="username"/>
+        <attribute name="password"/>
+        <attribute name="serverUrl"/>
+        <attribute name="checkOnly" default="true"/>
+        <sequential>
+            <echo>------------------------------------------------------------</echo>
+            <echo>Starting ELG-Release-4 - backup</echo>
+            <echo>Using login: @{username} to retrieve from the target sandbox</echo>
+            <echo>------------------------------------------------------------</echo>
+            <sf:retrieve
+                    username="@{username}"
+                    password="@{password}"
+                    serverurl="@{serverUrl}"
+                    unpackaged="/backup/package.xml"
+                    retrieveTarget="/backup"/>
+            <echo>------------------------------------------------------------</echo>
+            <echo>Starting ELG-Release-4 - deploy</echo>
+            <echo>Using login: @{username} to deploy to the target sandbox</echo>
+            <echo>Validate only: @{checkOnly}</echo>
+            <echo>------------------------------------------------------------</echo>
+            <sf:deploy
+                    username="@{username}"
+                    password="@{password}"
+                    serverurl="@{serverUrl}"
+                    pollWaitMillis="10000"
+                    maxPoll="5000"
+                    allowMissingFiles="true"
+                    deployRoot="src/"
+                    checkOnly="@{checkOnly}"
+                    testLevel="RunSpecifiedTests">
+                <runTest>ELG_HandoverForm_EndpointTest</runTest>
+                <runTest>ELG_ListView_EndpointTest</runTest>
+                <runTest>ELG_ShiftHandover_EndpointTest</runTest>
+                <runTest>ELG_ShiftHandoverSelectorTest</runTest>
+                <runTest>ELG_ShiftHandoverServiceTest</runTest>
+                <runTest>ELG_Task_EndpointTest</runTest>
+                <runTest>ELG_TaskSearch_EndpointTest</runTest>
+                <runTest>ELG_UtilitiesTest</runTest>
+            </sf:deploy>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="retrieve">
+        <attribute name="username"/>
+        <attribute name="password"/>
+        <attribute name="serverUrl"/>
+        <attribute name="checkOnly" default="true"/>
+        <sequential>
+            <echo>------------------------------------------------------------</echo>
+            <echo>Starting ELG-Release-4 - retrieve</echo>
+            <echo>Using login: @{username} to retrieve from the target sandbox</echo>
+            <echo>------------------------------------------------------------</echo>
+            <sf:retrieve
+                    username="@{username}"
+                    password="@{password}"
+                    serverurl="@{serverUrl}"
+                    unpackaged="/src/package.xml"
+                    retrieveTarget="/src"/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="backup_destructive">
+        <attribute name="username"/>
+        <attribute name="password"/>
+        <attribute name="serverUrl"/>
+        <attribute name="checkOnly" default="true"/>
+        <sequential>
+            <echo>------------------------------------------------------------</echo>
+            <echo>Starting ELG-Release-4 - destroy</echo>
+            <echo>Using login: @{username} to deploy to the target sandbox</echo>
+            <echo>Validate only: @{checkOnly}</echo>
+            <echo>------------------------------------------------------------</echo>
+            <sf:deploy
+                    username="@{username}"
+                    password="@{password}"
+                    serverurl="@{serverUrl}"
+                    pollWaitMillis="10000"
+                    maxPoll="5000"
+                    allowMissingFiles="true"
+                    deployRoot="destroy/"
+                    checkOnly="@{checkOnly}"
+                    testLevel="RunSpecifiedTests">
+                <runTest>ELG_ShiftHandover_EndpointTest</runTest>
+                <runTest>ELG_HandoverForm_EndpointTest</runTest>
+                <runTest>ELG_UtilitiesTest</runTest>
+            </sf:deploy>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="backup_deploy">
+        <attribute name="username"/>
+        <attribute name="password"/>
+        <attribute name="serverUrl"/>
+        <attribute name="checkOnly" default="true"/>
+        <sequential>
+            <echo>------------------------------------------------------------</echo>
+            <echo>Starting ELG-Release-4 - deploy</echo>
+            <echo>Using login: @{username} to deploy to the target sandbox</echo>
+            <echo>Validate only: @{checkOnly}</echo>
+            <echo>------------------------------------------------------------</echo>
+            <sf:deploy
+                    username="@{username}"
+                    password="@{password}"
+                    serverurl="@{serverUrl}"
+                    pollWaitMillis="10000"
+                    maxPoll="5000"
+                    allowMissingFiles="true"
+                    deployRoot="backup/"
+                    checkOnly="@{checkOnly}"
+                    testLevel="RunSpecifiedTests">
+                <runTest>ELG_ShiftHandover_EndpointTest</runTest>
+                <runTest>ELG_HandoverForm_EndpointTest</runTest>
+                <runTest>ELG_UtilitiesTest</runTest>
+            </sf:deploy>
+        </sequential>
+    </macrodef>
+
+</project>
