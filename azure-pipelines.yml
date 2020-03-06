@@ -14,6 +14,7 @@ steps:
   inputs:
     workingDirectory: ''
     buildFile: 'SFDCDevOps/build.xml'
+    options: -verbose -Dsalesforce.loginurl=$SF.LOGINURL -Dsalesforce.password=$SF.PASSWORD
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
