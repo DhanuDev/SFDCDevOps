@@ -13,7 +13,7 @@ steps:
 - task: Ant@1
   inputs:
     workingDirectory: ''
-    buildFile: '.build.xml'
+    buildFile: 'build.xml'
     options: -verbose -Dsalesforce.loginurl=$SF.LOGINURL -Dsalesforce.password=$SF.PASSWORD
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
